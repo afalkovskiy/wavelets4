@@ -1,7 +1,7 @@
 import streamlit as st
 from streamlit.components.v1 import html
 
-st.title('Seismic Wavelets v.3')
+st.title('Seismic Wavelets v.4')
 st.subheader('Alex Falkovskiy')
 url = "https://www.rmseismic.com"
 st.write("RM Seismic Software [rmseismic.com](%s)" % url)
@@ -9,11 +9,11 @@ st.write('The purpose of this web app is to illustrate how basic seismic wavelet
 st.write('You can also covolve any of these wavelets with simple reflectivity series and calculate a synthetic trace.')
 st.write('Wavelet equations used in this app are from a paper by Harold Ryan: Ricker, Ormsby; Klauder, Butterworth - A Choice of wavelets, publised in CSEG Recorder, September 1994.')
 st.write('Here is the list of wavelets you can display and calculate a synthetic trace:')
-st.write('**Ricker, Ormsby, Klauder**. Use a left side menu to select a wavelet and sliders to change parameters.')
+st.write('**Ricker, Ormsby, Klauder, Butterworth**. Use a left side menu to select a wavelet and sliders to change parameters.')
 
 url1 = "https://www.rmseismic.com/lasviewer.html"
-st.write("More geophysical web apps: [link](%s)" % url1)
-st.write("A.F., Nov 12 2023")
+st.write("More geophysical apps: [rmseismic.com](%s)" % url1)
+st.write("A.F., May 19 2024")
 
 google_js = """
 <!-- Google tag (gtag.js) --><script async src="https://www.googletagmanager.com/gtag/js?id=G-VBX865DFKL"></script><script>
