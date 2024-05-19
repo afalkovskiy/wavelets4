@@ -167,4 +167,4 @@ with col3:
 
 
 url1 = "https://www.rmseismic.com/lasviewer.html"
-st.write("More geophysical web apps: [link](%s)" % url1)
+st.write("More geophysical apps: [rmseismic.com](%s)" % url1)

@@ -5,12 +5,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import hilbert
 import math
+from scipy.signal import butter, lfilter
+from scipy import signal
+from scipy.signal import freqz
 
 st.set_page_config(layout="wide")
 
 pi = math.pi
 
-st.title('Klauder wavelet with synthetic trace')
+st.title('Butterworth wavelet with synthetic trace')
 col00, col10, col20 = st.columns(3)
 with col00:
     st.text('Select model parameters')
@@ -23,6 +26,30 @@ with col20:
 str0 = "Model: " + str(int(nr)) + " reflectors, distance between reflectors: " + str(dr) + " sec"
 st.subheader(str0)
 
+def butter_bandpass(lowcut, highcut, fs, order=5):
+    nyq = 0.5 * fs
+    low = lowcut / nyq
+    high = highcut / nyq
+    b, a = butter(order, [low, high], btype='band')
+    return b, a
+
+
+def butter_bandpass_filter(data, lowcut, highcut, fs, order=5):
+    b, a = butter_bandpass(lowcut, highcut, fs, order=order)
+    y = lfilter(b, a, data)
+    return y
+
+def Butter(T=6., lowcut=10., highcut=40., length=0.512, dt=0.001, n=1):
+    fs = 500.
+    T = 0.4
+    nsamples = int(T * fs)
+    t = np.linspace(0, T, nsamples, endpoint=False)
+    x = signal.unit_impulse(nsamples, [0])
+    y = butter_bandpass_filter(x, lowcut, highcut, fs, order=n)
+    maxAmp = max(y)
+    scl = 1/maxAmp
+
+    return t, scl*y
 
 
 def Klauder(T=6., f1=10., f2=40., length=0.512, dt=0.001):
@@ -39,35 +66,35 @@ def Klauder(T=6., f1=10., f2=40., length=0.512, dt=0.001):
     return t, y
 
 
-st.text('Select wavelet parameters')
+st.text('Select wavelet parameters (wavelet derived by applying Butterworth filter to a unit impulse):')
 st.latex(r'''
-    Klauder(t) = Re (\frac{sin(\pi kt(T-t))}{\pi kt} e^ {2 \pi if_0 t}),
-    where \; k = \frac{f_2 - f_l}{T}, fo = \frac{f_2 + f_l}{2}, i = \sqrt{-1}
+    G(w) = \frac{1}{\sqrt{1 + w^{2n}}},
+    where \; w \; is \; angular \; frequency (rad/sec), \;n \; is \; a \; filter \; order.
     ''')
 
-col100, col200, col300, col400, col500 = st.columns(5)
+col100, col200, col300, col400 = st.columns(4)
 with col100:
-    f1 = st.slider('Terminal low frequency (Hz)', value=10., min_value=1., max_value=240., step=1., format="%.1f")
+    f1 = st.slider('Lower bandpass frequency (Hz)', value=10., min_value=1., max_value=39., step=1., format="%.1f")
 
 with col200:    
-    f2 = st.slider('Terminal high frequency (Hz)', value=40., min_value=1., max_value=240., step=1., format="%.1f")
+    f2 = st.slider('Upper bandpass frequency (Hz)', value=40., min_value=f1+1., max_value=240., step=1., format="%.1f")
     
 with col300:   
-    T = st.slider('Duration of input signal (s)', value=7., min_value=5., max_value=10., step=1., format="%.1f")
+    order = st.slider('Order of the Butterworth filter', value=1, min_value=1, max_value=10, step=1, format="%d")
 
 with col400:      
     phi = st.slider('Phase rotation angle (deg)', value=0.0, min_value=0., max_value=360., step=45., format="%.1f")
 
-with col500:    
-    envelope = st.checkbox('Envelope')
+# with col500:    
+#     envelope = st.checkbox('Envelope')
     
 #st.write(f1, " - ", f2, "Hz, T =", T, " s")
 
 #f1 = 5
 #f2 = 10
-
-t, y = Klauder(T, f1, f2, 0.512, 0.001)
-str1 = "Klauder " + str(int(f1 + 0.5)) + " - " + str(int(f2 + 0.5))  + " Hz, " + str(int(T + 0.5))   + " sec, Phase " + str(int(phi+0.5)) + "°"
+T = 6.
+t, y = Butter(T, f1, f2, 0.512, 0.001, order)
+str1 = "Butterworth wavelet " + str(int(f1 + 0.5)) + " - " + str(int(f2 + 0.5))  + " Hz, " + " Phase " + str(int(phi+0.5)) + "°"
 # st.subheader(str1)
 
 
@@ -82,27 +109,30 @@ x_rotate = math.cos(phase)*z.real - math.sin(phase)*z.imag
 
 with col1:
     st.subheader(str1)
-    if envelope:
-        chart_data = pd.DataFrame(
-           {
-               "t": t,
-               #"y": y
-               "y": x_rotate,
-               "y_env2": inst_amplitude,
-               "y_env3": -1*inst_amplitude
-           }
-        )
-        st.line_chart(chart_data, x="t", y=["y", "y_env2", "y_env3"], color=["#d62728", "#D3D3D3", "#D3D3D3"], width=450, height=450)
-    
-    else:
-        chart_data = pd.DataFrame(
-           {
-               "t": t,
-               "y": x_rotate
-           }
-        )
 
-        st.line_chart(chart_data, x="t", y=["y"], color=["#d62728"])
+    chart_data = pd.DataFrame(
+        {
+            "t": t,
+            "y": x_rotate
+        }
+    )
+
+    st.line_chart(chart_data, x="t", y=["y"], color=["#d62728"])
+
+
+    st.subheader("Butterworth filter")
+    fs = 500.
+    b, a = butter_bandpass(f1, f2, fs, order)
+    w, h = freqz(b, a, worN=2000)
+
+    chart_data2 = pd.DataFrame(
+        {
+            "Frequency (Hz)": (fs * 0.5 / np.pi) * w,
+            "Density": abs(h)
+        } 
+    )  
+    st.line_chart(chart_data2, x="Frequency (Hz)", y=["Density"], color=["#d62728"])
+    
 length1 = 1.0
 dt1=0.001
 x1 = np.linspace(0, length1, int(length1/dt1))
@@ -138,6 +168,9 @@ for i in range(nr):
     y1[ni] = rf
 
 y2 = np.convolve(y1, x_rotate, mode='same')
+N = len(y1)
+y2 = np.convolve(y1, x_rotate, mode='full')[:N]
+
 y2[0] = 0.
 
 fig1 = plt.figure(figsize=(4,12))
@@ -157,18 +190,11 @@ plt.ylabel("Two-way time (sec)")
 
 plt.subplot(111)
 plt.plot(y2, x1)
-# plt.plot(np.maximum(0,y2), x1)
-# plt.plot(y2, np.minimum(0*x1,x1))
-# plt.fill_between(y2, np.maximum(0,x1), x1,  color='blue', alpha=.2)
-# plt.fill_between(y2, 0*x1, x1,  color='blue', alpha=.2)
 
-# plt.fill_between(x1, np.maximum(0*x1,y2), y2, y2,  color='red', alpha=.4)
-# plt.fill_between(x1, np.maximum(0*x1,y2), y2,  color='orange', alpha=.4)
-# plt.fill_betweenx(y2, np.maximum(0*y2,y2), 0*x1,  color='blue', alpha=.4)
 
 y2pos = np.maximum(0,y2)
-y2pos[10] = 0.
-x1[10] = .25
+# y2pos[10] = 0.
+# x1[10] = .25
 
 # plt.fill_between(y2pos, x1, 0,  color='green', alpha=.4)
 plt.fill_betweenx(x1, y2pos, 0,  color='navy', alpha=.6)
