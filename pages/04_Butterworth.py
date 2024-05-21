@@ -94,7 +94,7 @@ with col400:
 #f2 = 10
 T = 6.
 t, y = Butter(T, f1, f2, 0.512, 0.001, order)
-str1 = "Butterworth wavelet " + str(int(f1 + 0.5)) + " - " + str(int(f2 + 0.5))  + " Hz, " + " Phase " + str(int(phi+0.5)) + "°"
+str1 = "Butterworth wavelet " + str(int(f1 + 0.5)) + " - " + str(int(f2 + 0.5))  + " Hz"
 # st.subheader(str1)
 
 
