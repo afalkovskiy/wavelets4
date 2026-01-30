@@ -1,6 +1,7 @@
+streamlit
+streamlit.components.v1
 numpy
 pandas
 matplotlib
 scipy
-streamlit
 math
