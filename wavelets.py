@@ -13,7 +13,7 @@ st.write('**Ricker, Ormsby, Klauder, Butterworth**. Use a left side menu to sele
 
 url1 = "https://www.rmseismic.com/lasviewer.html"
 st.write("More geophysical apps: [rmseismic.com](%s)" % url1)
-st.write("A.F., May 19 2024")
+st.write("A.F., Jan 30, 2026")
 
 google_js = """
 <!-- Google tag (gtag.js) --><script async src="https://www.googletagmanager.com/gtag/js?id=G-VBX865DFKL"></script><script>
